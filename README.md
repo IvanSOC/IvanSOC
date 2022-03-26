@@ -76,32 +76,29 @@ mesh generator:
 
 camera controller:
 
-    private float mouseWheelSpeed = 10f;
-
-    private Vector3 startPosition;
-    private Vector3 targetPosition;
-
     private Camera cam;
     private PanelOpener panelOpener;
     private GeneratorSettings generatorSettings;
 
+    private Vector3 startPosition;
+    private Vector3 targetPosition;
+
     private float worldCenter;
-    private float orthographicViewFix = 7.35f;
+    private float cameraCenter;
+    private float nullPosition;
+
     private float positiveLimit;
     private float negativeLimit;
 
+    private float mouseWheelSpeed = 10f;
+
     private void Start()
     {
-        generatorSettings = GetComponent<GeneratorSettings>();
-        int referencePoint = generatorSettings.worldSize / 2;
-        worldCenter = referencePoint - transform.position.y + orthographicViewFix;
-        positiveLimit = worldCenter + referencePoint;
-        negativeLimit = worldCenter - referencePoint;
-
-        transform.position = new Vector3(worldCenter, transform.position.y, worldCenter);
-
         cam = GetComponent<Camera>();
-        panelOpener = cam.GetComponent<PanelOpener>();
+        panelOpener = GetComponent<PanelOpener>();
+        generatorSettings = GetComponent<GeneratorSettings>();
+
+        SetCameraSettings();
     }
 
     private void Update()
@@ -126,8 +123,20 @@ camera controller:
         float mouseWheel = Input.GetAxis("Mouse ScrollWheel");
         if (mouseWheel != 0)
         {
-            cam.orthographicSize = Mathf.Clamp(cam.orthographicSize + -mouseWheel * mouseWheelSpeed, 3, 18);
+            cam.orthographicSize = Mathf.Clamp(cam.orthographicSize + -mouseWheel * mouseWheelSpeed, 3, 22);
         }
+    }
+
+    private void SetCameraSettings()
+    {
+        worldCenter = (float)generatorSettings.worldSize / 2;
+        cameraCenter = Mathf.Sqrt(Mathf.Pow(transform.position.y, 2) + Mathf.Pow(transform.position.y, 2));
+        cameraCenter /= 2;
+        nullPosition = worldCenter - cameraCenter;
+        transform.position = new Vector3(nullPosition, transform.position.y, nullPosition);
+
+        positiveLimit = nullPosition + worldCenter;
+        negativeLimit = nullPosition - worldCenter;
     }
 
 world generator:
